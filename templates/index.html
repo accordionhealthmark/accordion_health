@@ -1,18 +1,42 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html> -->
 {% load staticfiles %} 
 <html>
   <head>
     {% csrf_token %}
-    <link rel="stylesheet" type="text/css" href="{% static "css/styles.css" %}">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-    <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.8.1/css/bootstrap-select.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static "css/main.css" %}">
+    <link rel='shortcut icon' href="{% static "img/accordion_g64.ico" %}"/ >
   </head>
   <body>
   <div class="navbar navbar-default navbar-fixed-top">
+    <img class="navbar-logo" src="{% static 'img/logo_green.png' %}" >
+    <button class='change-chart btn pull-right'>See Credential Freq</button>
   </div>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" type="text/javascript"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-  <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+  <h1 class='title'>Provider Name Prefix Frequency</h1>
+  <div id='main-container'>
+    <div class="map" style='display:none;'>
+    </div>
+    <div class="chart">
+    </div>
+  </div>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.10/d3.min.js" type="text/javascript"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" type="text/javascript"></script>
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.8.1/js/bootstrap-select.min.js"></script>
+  <script src="//d3js.org/queue.v1.min.js"></script>
+  <script src="//d3js.org/topojson.v1.min.js"></script>
+  <script src="{% static "json_data/County_entity_type.json" %}"></script>
+  <script src="{% static "json_data/County_gender.json" %}"></script>
+  <script src="{% static "json_data/County_is_sole_proprietor.json" %}"></script>
+  <script src="{% static "json_data/State_entity_type.json" %}"></script>
+  <script src="{% static "json_data/State_gender.json" %}"></script>
+  <script src="{% static "json_data/State_is_sole_proprietor.json" %}"></script>
+  <script src="{% static "name_prefix_freq.json" %}"></script>
+  <script src="{% static "provider_credentials_freq.json" %}"></script>
+  <script src="{% static "js/d3-map.js" %}"></script>
+  <script src="{% static "js/d3-bar-plot.js" %}"></script>
+  <script src="{% static "js/main.js" %}"></script>
   </body>
 </html>
 

@@ -1,0 +1,118 @@
+h1 {
+  text-align: center;
+}
+
+button {
+  margin-left: 20px;
+  padding: 5px 25px;
+  background-color: #323A45;
+  color: white;
+}
+     
+.chart {
+  text-align: center;
+}
+
+.btn.focus, .btn:focus, .btn:hover {
+  color: white;
+}
+
+.change-chart {
+  margin:10px;
+}
+
+#select-container {
+  text-align: center;
+}
+
+div.navbar-default {
+  position: relative;
+}
+
+#select-text {
+  margin: 23px;
+  font-size: 25px;
+}
+.map svg, .chart svg {
+  display: block;
+  margin: auto;
+}
+
+img.navbar-logo {
+  max-height: 25px;
+  float: left;
+  margin: 15px 15px;
+}
+
+.counties {
+  fill: none;
+}
+
+.states {
+  fill: none;
+  stroke: #fff;
+  stroke-linejoin: round;
+}
+
+.setq0-9 { 
+  fill:rgb(247,251,255); 
+}
+
+.setq1-9 { 
+  fill:rgb(222,235,247); 
+}
+
+.setq2-9 { 
+  fill:rgb(198,219,239); 
+}
+
+.setq3-9 { 
+  fill:rgb(158,202,225); 
+}
+
+.setq4-9 { 
+  fill:rgb(107,174,214); 
+}
+
+.setq5-9 { 
+  fill:rgb(66,146,198); 
+}
+
+.setq6-9 { 
+  fill:rgb(33,113,181); 
+}
+
+.setq7-9 { 
+  fill:rgb(8,81,156); 
+}
+
+.setq8-9 { 
+  fill:rgb(8,48,107); 
+}
+
+path[class^='setq']{
+  stroke: #fff;
+  stroke-linejoin: round;
+}
+
+.bar {
+  fill: #2ACBA3;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis {
+  font: 10px sans-serif;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}

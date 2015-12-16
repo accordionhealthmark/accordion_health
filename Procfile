@@ -1,0 +1,1 @@
+web: gunicorn accordion_health.wsgi --log-file -
