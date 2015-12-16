@@ -11,7 +11,11 @@ May deal with this better in the future. Right now, I just wanted get something 
 Still need to write docs for the D3 code. Will hopefully have time to do that before tomorrow night.
 
 References:
+
 http://bl.ocks.org/mbostock/4060606
+
 http://bl.ocks.org/mbostock/3885304
+
 Several other blogs that I didn't keep track of
+
 
