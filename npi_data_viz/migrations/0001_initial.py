@@ -11,10 +11,14 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Provider',
+            name='County',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('entity_type', models.IntegerField()),
+                ('fip_code', models.IntegerField()),
+                ('doctor_type', models.CharField(max_length=60)),
+                ('state', models.CharField(max_length=2)),
+                ('frequency', models.IntegerField()),
+                ('population', models.IntegerField()),
             ],
         ),
     ]
