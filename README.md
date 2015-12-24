@@ -2,13 +2,11 @@
 
 The original data set was cleaned using [csvkit](https://csvkit.readthedocs.org/en/0.9.1/). The cleaned csv was too large to upload so it's not in this repo. I can send it over upon request.
 
-Following this clean, I used [pandas](http://pandas.pydata.org/) to create JSON data for the D3 visualizations. In order to create a 
-counties US maps I found a JSON file with FIPS to Zipcode mappings [here](http://mavericklee.com/assets/data/FIPS_to_ZIPS.json). This mapping
-was not as precise as I would of liked. This is why the US maps have counties that are missing data. One other thing to note with the visualizations is
-the fact that the reporting of provider credentials is inconsistent. Therefore this bar plot is not accurate and has repeated categories.
-May deal with this better in the future. Right now, I just wanted get something up and going for you all to see. 
+Following this clean, I used [pandas](http://pandas.pydata.org/) to format the data in a way and would make it easiser to load the data to the database. 
 
-Still need to write docs for the D3 code. Will hopefully have time to do that before tomorrow night.
+In order to create a counties US map I found a JSON file with FIPS to Zipcode mappings [here](http://mavericklee.com/assets/data/FIPS_to_ZIPS.json). I also used data related to the populations per zipcode. This dataset was pulled from [here](http://blog.splitwise.com/2013/09/18/the-2010-us-census-population-by-zip-code-totally-free/).
+
+The maps show rations of (population for county x)/(number of type x doctors). I thought this was a better representation of whats trying to be conveyed. 
 
 References:
 
