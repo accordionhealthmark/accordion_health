@@ -1,105 +1,137 @@
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "accordion_health.settings")
+
 import pandas as pd
 import random
 import time
-from fips_to_zips import zipcode_to_county
+from original_fips_to_zips import original_fips_to_zips
 import json
-import os
+from npi_data_viz.models import County
+
+# TL;DR
+# This script properly formats the data. It begins with the 
+# the initial dataset with select columns appropiate to this
+# project. The final dataset contains information regarding 
+# the FIP code for each zipcode and the specialty names
+# for the different taxonomy codes.
+
+# Read in initial data
+npi_data = pd.read_csv('./static/csv/npi_doctor_data.csv')
+
+# Maps codes to profession titles
+taxonomy_codes = pd.read_csv('./static/csv/taxonomy_codes.csv')
+
+# Population for every zipcode in US
+population_by_zipcode = pd.read_csv('./static/csv/zip_to_population.csv', dtype=str)
+
+##########################################
+### CREATE POPULATION BY FIP CODE DATA ###
+##########################################
+
+# Rename columns 
+population_by_zipcode.columns = ['zipcode', 'population']
+
+# Create a list of lists with [FIP, Zipcode] pairs to create
+# dataframe
+zip_to_fip_dict = []
+for key, list_of_zips in original_fips_to_zips.items():
+    # Remove first character for FIP codes that start with a zero
+    # since this is how they are identified in our us-topo.json file
+    if key[0] == '0':
+        fip = key[1:5]
+    else:
+        fip = key
+    for zipcode in list_of_zips:
+        zip_to_fip_dict.append([fip, zipcode])
+
+# Create a dataframe that ties a FIP code to every FIP code
+zip_to_fip = pd.DataFrame(zip_to_fip_dict, columns=['FIP', 'zipcode'])
+
+# Convert zipcode and population data types
+zip_to_fip.zipcode = zip_to_fip.zipcode.astype(str)
+population_by_zipcode.population = population_by_zipcode.population.astype(int)
+
+# Merge our zip to fip mapping with population data
+# Merged dataset will be FIP, Zipcode, Zipcode population
+zip_fip_population = pd.merge(zip_to_fip, population_by_zipcode, on='zipcode')
+
+# Sum by FIP code to get population for each FIP area.
+fip_population = zip_fip_population[['FIP','population']].groupby(['FIP']).sum().reset_index()
 
 
-# This script was used to wrangle the data in an appropiate
-# format and to create json data for the D3 bar plots and maps.
-# The script is currently only shown for presentation purposes,
-# since I was unable to upload final_data.csv, which is the
-# cleaned version of the original 4gb file. (there are space 
-# limitations on the size of files that are pushed to GitHub).
+##########################################
+### TYPE OF DOCTOR BY FIP (Freq) Data ####
+##########################################
 
-if not os.path.exists('./static/csv/sampled-set.csv'):
-    #This file was removed due to space issues with GitHub.
-    npi_data = pd.read_csv('final_data.csv', dtype=object)
-    state_ids = pd.read_csv('./static/csv/us-state-names.tsv', sep='\t', dtype=object)
+doctor_credentials = [
+    'MD', 'M D', 'M.D.', 
+    'M.D', 'M D.', 'DO',
+    'D.O.', 'D O', 'D O.'
+]
 
-    ######################
-    ### Wrangle Data #####
-    ######################
+column_names = [
+    'npi', 'country_code', 'zipcode',
+    'state', 'credential', 'taxonomy_code_1', 'taxonomy_code_2', 
+    'taxonomy_code_3', 'taxonomy_code_4', 'taxonomy_code_5',
+    'taxonomy_code_6', 'taxonomy_code_7', 'taxonomy_code_8',
+    'taxonomy_code_9', 'taxonomy_code_10', 'taxonomy_code_11',
+    'taxonomy_code_12', 'taxonomy_code_13', 'taxonomy_code_14',
+    'taxonomy_code_15', 'primary_1', 'primary_2',
+    'primary_3', 'primary_4', 'primary_5',
+    'primary_6', 'primary_7', 'primary_8',
+    'primary_9', 'primary_10', 'primary_11',
+    'primary_12', 'primary_13', 'primary_14',
+    'primary_15'
+]
 
-    # Remove spaces from column names to help with indexing
-    npi_data.columns = [
-        'entity_type', 'provider_credentials', 'state',
-        'postal_code','deactivation_code', 'deactivation_date', 
-        'activation_date','gender', 'name_prefix', 
-        'is_sole_proprietor'
-    ]
+# Rename columns
+npi_data.columns = column_names
 
-    # Sample data(DUHHHH)
-    rows = random.sample(npi_data.index, 100000)
-    sampled_data = npi_data.ix[rows]
+# Filter data by MD and OD type doctors in the US.
+us_doctor_data = npi_data[(npi_data.credential.isin(doctor_credentials)) & (npi_data.country_code == 'US')]
 
-    # Function used to translate zipcode to FIP.
-    def find_county(zipcode):
-        try: 
-            return zipcode_to_county[zipcode] 
-        except KeyError: 
-            return 'County not found.'
+# Get zipcode by removing all numbers past the first 5 characters in the zipcode field.
+us_doctor_data['zipcode'] = us_doctor_data['zipcode'].map(lambda x: str(x)[0:5])
 
-    # Grab only first 5 digits in zipcode
-    sampled_data['postal_code'] = sampled_data['postal_code'].map(lambda x: str(x)[0:5])
-    # Assign FIPs code based on zipcode using fips_to_zips.py dictionary (mapping found online, but missing data)
-    sampled_data['county_id'] = sampled_data['postal_code'].map(lambda x: find_county(x))
-    # Merge so that data contains state id used in D3
-    merged_data = pd.merge(sampled_data, state_ids, left_on='state', right_on='code',how='inner')
-    #Eliminate extra columns
-    merged_data = merged_data.drop('code', 1)
-    merged_data = merged_data.drop('deactivation_code', 1)
+# Replace NA values
+us_doctor_data = us_doctor_data.fillna('')
 
-    #######################################
-    ### Create json files for Map data ####
-    #######################################
+# Use this function to find the primary type of doctor for each provider
+def find_primary(row):
+    for i in range(1,15):
+        if row['primary_%s' % str(i)] == 'Y':
+            return row['taxonomy_code_%s' % str(i)]
 
-    map_types = ['id', 'county_id']
-    data_categories = {
-      'gender':['M','F'],
-      'is_sole_proprietor':['Y','N'],
-      'entity_type':['1','2'],
-    }
-    #Create a json file for each state, county to variable combo.
-    for map_type in map_types:
-        for variable, factors in data_categories.iteritems():
-            # Use getattr since dot operator cant be use when we have a variable attribute
-            data_series = getattr(merged_data, variable)
-            #Wrangle in correct format
-            cleaned_data = merged_data[data_series.isin(factors)]
-            formated_data = pd.crosstab(getattr(cleaned_data, map_type), getattr(cleaned_data, variable)).apply(lambda x: x/x.sum(), axis=1)
-            dict_data = formated_data.to_dict()
-            _map_type = 'State' if map_type == 'id' else 'County'
-            #Add map type to json
-            dict_data['map_type'] = _map_type
-            filepath = './static/json_data/%s_%s.json' % (_map_type, variable) 
-            with open(filepath, "w") as outfile:
-                json.dump(dict_data, outfile, separators=(',', ':'))
-           
+us_doctor_data['primary_taxonomy'] = us_doctor_data.apply(lambda row: find_primary(row), axis=1)
 
-    ##################################
-    ## Transform data for bar plot ###
-    ##################################
+# Assign a FIP code to each record 
+us_doctor_data = pd.merge(zip_to_fip, us_doctor_data, on='zipcode')
 
-    bar_plot_variables = ['provider_credentials', 'name_prefix']
-    for bar_variable in bar_plot_variables:
-        # Group by variable and frequency of that variable
-        freq_df = merged_data.groupby([bar_variable]).size().reset_index(name='Freq').sort('Freq', ascending=False)
-        # For credentials just get frequency of highest occuring strings
-        # and count those due to variability and inconsistency in reporting.
-        if bar_variable == 'provider_credentials':
-            freq_df = freq_df[1:15]
-        freq_list = freq_df.to_dict(orient='records')
-        bar_plot_data = {}
-        bar_plot_data['data'] = freq_list
-        bar_plot_data['type'] = bar_variable
-        filepath = './static/%s_freq.json' % (bar_variable) 
-        with open(filepath, "w") as bar_plot:
-            json.dump(bar_plot_data, bar_plot, separators=(',', ':'))
-    merged_data.to_csv('./static/csv/sampled-set.csv', ',', index=False)
+# Select only FIP, state, and primary taxonomy code
+us_doctor_data = us_doctor_data[['FIP', 'primary_taxonomy', 'state']]
 
+# Join the taxonomy table that has specific names for 
+# for each taxonomy code
+us_doctor_data = pd.merge(us_doctor_data, taxonomy_codes, left_on='primary_taxonomy', right_on='Code')
 
+# Select necessary columns
+us_doctor_data = us_doctor_data[['FIP', 'primary_taxonomy', 'Classification', 'state']]
 
+# Find the top 20 types of doctors by frequency in total set
+top_doctor_types = us_doctor_data.groupby(['Classification']).size().reset_index(name="Freq").sort(['Freq'], ascending=False)[0:20]
 
+# Make a list of top 20 doctors
+list_of_top_doctors = top_doctor_types.Classification.tolist()
+
+# Filter data to only contain top 20 doctor types
+final_doctor = us_doctor_data[us_doctor_data.Classification.isin(list_of_top_doctors)]
+
+# Get frequency by FIP, Type of doctor
+final_doctor = final_doctor.groupby(['FIP', 'Classification', 'state']).size().reset_index(name="Freq")
+final_doctor = pd.merge(final_doctor, fip_population, on='FIP')
+
+# Load data in database
+for index, row in final_doctor.iterrows():
+    county = County(fip_code=row['FIP'], doctor_type=row['Classification'], state=row['state'], frequency=row['Freq'], population=row['population'] )
+    county.save()
 

@@ -28,94 +28,169 @@
   });
 
 $(document).ready(function() {
-  //Select/Option data
-  var variableObj = {
-    'gender': '% of Male Providers', 
-    'is_sole': '% of Sole Proprietor',
-    'entity_type': '% of Organzations'
-  };
-
-  var mapTypeObj = {
-    'state_id': 'State',
-    'county_id': 'County'
-  };
-
+  //Select data
   var barPlotObj = {
-    'name_prefix_freq': 'Name Prefix',
-    'provider_credentials_freq': 'Credentials'
-  };
+    "AL": "Alabama",
+    "AK": "Alaska",
+    "AS": "American Samoa",
+    "AZ": "Arizona",
+    "AR": "Arkansas",
+    "CA": "California",
+    "CO": "Colorado",
+    "CT": "Connecticut",
+    "DE": "Delaware",
+    "DC": "District Of Columbia",
+    "FM": "Federated States Of Micronesia",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "GU": "Guam",
+    "HI": "Hawaii",
+    "ID": "Idaho",
+    "IL": "Illinois",
+    "IN": "Indiana",
+    "IA": "Iowa",
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
+    "ME": "Maine",
+    "MH": "Marshall Islands",
+    "MD": "Maryland",
+    "MA": "Massachusetts",
+    "MI": "Michigan",
+    "MN": "Minnesota",
+    "MS": "Mississippi",
+    "MO": "Missouri",
+    "MT": "Montana",
+    "NE": "Nebraska",
+    "NV": "Nevada",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
+    "NM": "New Mexico",
+    "NY": "New York",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "MP": "Northern Mariana Islands",
+    "OH": "Ohio",
+    "OK": "Oklahoma",
+    "OR": "Oregon",
+    "PW": "Palau",
+    "PA": "Pennsylvania",
+    "PR": "Puerto Rico",
+    "RI": "Rhode Island",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
+    "VT": "Vermont",
+    "VI": "Virgin Islands",
+    "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
+    "WI": "Wisconsin",
+    "WY": "Wyoming"
+  }
 
-  // Create a select container for selecting map data. 
-  // Form was not created since this data will not be retrieved from 
-  // a database in the current implementation.
-  $selectContainer = $("<div id='select-container' style='display:none;'></div>");
-  $selectContainer.append(createSelect('variable-select', variableObj));
-  $selectContainer.append('<span id="select-text">by</span>');
-  $selectContainer.append(createSelect('map-select', mapTypeObj));
-  $selectContainer.append('<button class="form-submit btn">Submit</button>')
-  $('#main-container').prepend($selectContainer);
-  $('.chart').append(createSelect('chart-select', barPlotObj))
 
-  createMap(State_is_sole)
-  createBarPlot(name_prefix_freq)
+  var doctorData = {
+    'Internal Medicine': 'Internal Medicine', 
+    'Family Medicine': 'Family Medicine', 
+    'Pediatrics': 'Pediatrics', 
+    'Psychiatry & Neurology': 'Psychiatry & Neurology', 
+    'Anesthesiology': 'Anesthesiology', 
+    'Emergency Medicine': 'Emergency Medicine', 
+    'Obstetrics & Gynecology': 'Obstetrics & Gynecology', 
+    'Radiology': 'Radiology', 
+    'Student in an Organized Health Care Education/Training Program': 'Student in an Organized Health Care Education/Training Program', 
+    'Surgery': 'Surgery', 
+    'Specialist': 'Specialist', 
+    'Orthopaedic Surgery': 'Orthopaedic Surgery', 
+    'Ophthalmology': 'Ophthalmology', 
+    'Pathology': 'Pathology', 
+    'Dermatology': 'Dermatology', 
+    'General Practice': 'General Practice', 
+    'Urology': 'Urology', 
+    'Otolaryngology': 'Otolaryngology', 
+    'Physical Medicine & Rehabilitation': 'Physical Medicine & Rehabilitation', 
+    'Hospitalist': 'Hospitalist'
+  }
 
-  //Initial title values that get changed on data change.
-  mapTitle = '% of Male Providers by State'
-  barPlotTitle = 'Provider Name Prefix Frequency'
+  // Create select element for map
+  createSelect('map-select', doctorData)
   
-  //When select option is changed for bar plot.
-  //1. Remove previous plot
-  //2. Assign new name
-  //3. Invoke createBarPlot that creates bar plot
-  $('.chart-select').change(function() {
-    $('.chart svg').remove();
-    barPlotTitle = 'Provider ' + $('.chart-select option:selected').text() + ' Frequency';
-    $('.title').text(barPlotTitle);
-    createBarPlot(eval($('.chart-select option:selected').val()))
-  })
+  // Initial data visualizations
+  ajaxPost({'map': 'Internal Medicine'})
+  ajaxPost({'bar': 'AL'})
   
-  //When user request a certain map
-  //1. Grab metric and map type from select elements
-  //2. Grab variable name and map type and concat to refer to JSON file with
-  //   correct data
-  //3. Create bar plot and redefine title based on variable and map type
-  $('.form-submit').on('click', function(){
-    $('.map svg').remove()
-    var metric = $('.variable-select option:selected').val();
-    var mapType = $('.map-select option:selected').text();
-    var jsonData = eval(mapType + "_" + metric);
-    createMap(jsonData);
-    mapTitle = $('.variable-select option:selected').text() + ' by ' + jsonData['map_type'] + ' in U.S'
-    $('.title').text(mapTitle);
-  });
 
-  //Showing and hiding both charts
-  $('.change-chart').on('click', function(){
-    if ($('.map').is(":visible")) {
-      $('.change-chart').text('See Map');
-      $('.map').hide();
-      $('#select-container').hide();
-      $('.chart').show();
-      $('.title').text(barPlotTitle);
+  //Hide and show elements related to bar graphic and map graphic
+  $('.change-chart').on('click', function() {
+    if ($('.map-select').length) {
+      $(this).text('See doctors by county')
+      $('.map-select').remove();
+      createSelect('chart-select', barPlotObj)
+      $('.map-container').hide();
+      $('.map-title').hide();
+      $('.bar-title').show();
+      $('.bar-container').show();
     } else {
-      $('.change-chart').text('See Bar Freq');
-      $('.chart').hide();
-      $('.map').show();
-      $('#select-container').show();
-      $('.title').text(mapTitle);
+      $(this).text('See Bar Plot by State')
+      $('.chart-select').remove();
+      createSelect('map-select', doctorData);
+      $('.map-title').show();
+      $('.bar-title').hide();
+      $('.bar-container').hide();
+      $('.map-container').show();
     }
   });
 
+  // Event listener for when there is a form POST
+  // Determines the type of post (map or bar) by looking at the length
+  // of the selected value. State values are of length 2. (CA, FL, TX etc.)
+  $('#doctor-form').submit(function(e){
+    e.preventDefault();
+    var selectValue = $('form option:selected').val();
+    var postData = selectValue.length === 2 ? {'bar': selectValue} : {'map': selectValue}
+    ajaxPost(postData)
+  })
+
   //Anonymous function to create a select element with options(text,value)
-  function createSelect(selectClass, optionObj) {
-    $select = $('<select class="selectpicker"></select>').addClass(selectClass)
+  function createSelect (selectClass, optionObj) {
+    $select = $('<select class="selectpicker"></select>').addClass(selectClass);
     $.each(optionObj, function(value, index){
       $select
-        .append($('<option>fuck</option>')
+        .append($('<option></option>')
         .attr('value', value)
         .text(index));
     })
-    return $select;
-  };
+    $('#doctor-form').prepend($select);
+    $('.selectpicker').selectpicker();
+  }
 
+  // Function that makes our ajax call.
+  // On success the appropriate D3 graphic 
+  // is rendered. This is determined by the response
+  // structure. ('bar_plot' in *response*)
+  function ajaxPost (data) {
+    $.ajax({
+      type:"POST",
+      url:"/",
+      data: data,
+      success: function(jsonData) {
+        var jsonDataParsed = jQuery.parseJSON(jsonData);
+        if ('bar_plot' in jsonDataParsed) {
+          var title = $('.bar-title').text('Counts of Types of Doctors in ' + data.bar)
+          $('.bar-plot-container').prepend(title)
+          createBarPlot(jsonDataParsed) 
+        } else {
+          var title = $('.map-title').text('Ratio of ' + data.map + ' Doctors to County Population')
+          createMap(jsonDataParsed)
+        }
+      },
+      error: function() {
+        alert('There was an error with your request. Please contact Mark at' +
+          'mmartinez8020@gmail.com regarding this issue.')
+      }
+    });
+  }
 })

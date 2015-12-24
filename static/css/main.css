@@ -1,4 +1,4 @@
-h1 {
+h1, h2 {
   text-align: center;
 }
 
@@ -9,9 +9,9 @@ button {
   color: white;
 }
      
-.chart {
+/*.chart {
   text-align: center;
-}
+}*/
 
 .btn.focus, .btn:focus, .btn:hover {
   color: white;
@@ -21,7 +21,7 @@ button {
   margin:10px;
 }
 
-#select-container {
+#main-container {
   text-align: center;
 }
 
@@ -33,7 +33,8 @@ div.navbar-default {
   margin: 23px;
   font-size: 25px;
 }
-.map svg, .chart svg {
+
+svg.map, svg.bar-chart {
   display: block;
   margin: auto;
 }
